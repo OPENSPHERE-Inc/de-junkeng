@@ -12,12 +12,13 @@ const deploy: DeployFunction = async function ({
 
     const coin = await deploy("JunkCoinERC20", {
         from: deployer,
+        gasLimit: 1000000,
         args: [],
     });
 
     const junkeng = await deploy("Junkeng", {
         from: deployer,
-        // gas: 4000000,
+        gasLimit: 1500000,
         args: [coin.address],
     });
 

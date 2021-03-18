@@ -1,3 +1,6 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import {HardhatUserConfig, task} from "hardhat/config";
 import "@nomiclabs/hardhat-waffle";
 import "@nomiclabs/hardhat-ethers";
@@ -16,6 +19,7 @@ task("accounts", "Prints the list of accounts", async (args, hre) => {
     }
 });
 
+
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
 
@@ -26,6 +30,7 @@ const config: HardhatUserConfig = {
     react: {
         providerPriority: ["web3modal", "hardhat"],
     },
+    defaultNetwork: "rinkeby",
     networks: {
         hardhat: {
             inject: false, // optional. If true, it will EXPOSE your mnemonic in your frontend code. Then it would be available as an "in-page browser wallet" / signer which can sign without confirmation.
@@ -33,15 +38,12 @@ const config: HardhatUserConfig = {
                 mnemonic: "test test test test test test test test test test test junk", // test test test test test test test test test test test junk
             },
         },
-        // hardhat: {
-        //   accounts: [
-        //     {
-        //       balance: "10000000000000000000000",
-        //       privateKey:
-        //         "0xe87d780e4c31c953a68aef2763df56599c9cfe73df4740fc24c2d0f5acd21bae",
-        //     },
-        //   ],
-        // },
+        rinkeby: {
+            url: process.env.RINKEBY_URL,
+            accounts: {
+                mnemonic: process.env.WALLET_MNEMONIC
+            }
+        }
     },
     namedAccounts: {
         deployer: {
@@ -61,7 +63,7 @@ const config: HardhatUserConfig = {
                 settings: {
                     optimizer: {
                         enabled: true,
-                        runs: 50,
+                        runs: 1000,
                     },
                 },
             },
