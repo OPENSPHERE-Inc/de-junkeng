@@ -2,9 +2,9 @@ import React from "react";
 import { Symfoni } from "../hardhat/SymfoniContext";
 
 
-const withHardhat = (Component: React.FC) => (props: any) => {
-    return <Symfoni autoInit={true} >
-        <Component {...props} />
+const withHardhat = (Component: React.FC) => () => {
+    return <Symfoni autoInit={true}>
+        <Component />
     </Symfoni>
 }
 

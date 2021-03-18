@@ -8,7 +8,6 @@
   "keywords": [],
   "author": "Shinichi Hanayama",
   "license": "MIT",
-  "dependencies": {},
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "npm:hardhat-deploy-ethers",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
@@ -29,11 +28,12 @@
     "ts-morph": "^9.0.0",
     "ts-node": "^9.0.0",
     "typechain": "^4.0.1",
-    "typescript": "^4.1.2"
+    "typescript": "^4.1.2",
+    "moment": "^2.29.1"
   },
   "scripts": {
     "test": "npx hardhat test",
-    "node": "npx hardhat node --watch",
+    "serve": "npx hardhat node --watch",
     "frontend": "cd frontend && npm run start"
   }
 }

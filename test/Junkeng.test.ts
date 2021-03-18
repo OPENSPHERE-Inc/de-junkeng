@@ -2,23 +2,32 @@ import {expect} from "chai";
 import hre from "hardhat";
 import {TransactionResponse} from "@ethersproject/abstract-provider";
 import {BigNumber} from "ethers";
+import moment from "moment";
 
 describe('Junkeng', () => {
-    before(async () => {
+    beforeEach(async () => {
         await hre.deployments.fixture();
     })
+
+    const getContrcts = async () => {
+        const { tester1, tester2 } = await hre.getNamedAccounts();
+        const Junkeng1 = await hre.ethers.getContract('Junkeng', tester1);
+        const Junkeng2 = await hre.ethers.getContract('Junkeng', tester2);
+
+        return { Junkeng1, Junkeng2, tester1, tester2 };
+    }
 
     describe('Regular run', () => {
         it('Join Succeed', (done) => {
             (async () => {
-                const {tester1, tester2} = await hre.getNamedAccounts();
-                const Junkeng1 = await hre.ethers.getContract('Junkeng', tester1);
-                const Junkeng2 = await hre.ethers.getContract('Junkeng', tester2);
+                const { Junkeng1, Junkeng2, tester1, tester2 } = await getContrcts();
 
-                const listener = (a_index: number, b_index: number) => {
-                    console.log(`Established a_index ${a_index} b_index ${b_index}`);
+                const listener = (a: string, a_index: number, b: string, b_index: number) => {
+                    console.log(`Established a ${a} a_index ${a_index} b ${b} b_index ${b_index}`);
 
+                    expect(a).equal(tester1);
                     expect(a_index).equal(0);
+                    expect(b).equal(tester2);
                     expect(b_index).equal(1);
 
                     Junkeng1.off('Established', listener);
@@ -32,75 +41,133 @@ describe('Junkeng', () => {
             })()
         })
 
+        it('Get Status Succeed (1)', async () => {
+            const { Junkeng1, Junkeng2, tester1, tester2 } = await getContrcts();
+
+            await Junkeng1.join().then((tx: TransactionResponse) => tx.wait());
+            await Junkeng2.join().then((tx: TransactionResponse) => tx.wait());
+
+            const status1 = await Junkeng1.getStatus();
+            const status1op = await Junkeng1.getOpponentStatus();
+            const status2 = await Junkeng2.getStatus();
+            const status2op = await Junkeng2.getOpponentStatus();
+
+            expect(status1.addr).equal(tester1);
+            expect(status1.index).equal(0);
+            expect(status1.status).equal(1);
+            expect(status1.handShape).equal(0);
+            expect(status1.index).equal(status2op.index);
+
+            expect(status2.addr).equal(tester2);
+            expect(status2.index).equal(1);
+            expect(status2.status).equal(1);
+            expect(status2.handShape).equal(0);
+            expect(status2.index).equal(status1op.index);
+        })
+
         it('Disclose Succeed', (done) => {
             (async () => {
-                const {tester1, tester2} = await hre.getNamedAccounts();
-                const Junkeng1 = await hre.ethers.getContract('Junkeng', tester1);
-                const Junkeng2 = await hre.ethers.getContract('Junkeng', tester2);
+                const { Junkeng1, Junkeng2, tester1, tester2 } = await getContrcts();
 
-                const listener = (a_index: number, a_handShape: number, b_index: number, b_handShape: number) => {
-                    console.log(`Disclosed a_index ${a_index} a_handShape ${a_handShape} b_index ${b_index} b_handShape ${b_handShape}`);
+                await Junkeng1.join().then((tx: TransactionResponse) => tx.wait());
+                await Junkeng2.join().then((tx: TransactionResponse) => tx.wait());
 
+                let count = 0;
+
+                const settledListener = (a: string, a_index: number, a_handShape: number, b: string, b_index: number, b_handShape: number) => {
+                    console.log(`Settled a ${a} a_index ${a_index} a_handShape ${a_handShape} b ${b} b_index ${b_index} b_handShape ${b_handShape}`);
+
+                    expect(a).equal(tester2);
                     expect(a_index).equal(1);
                     expect(a_handShape).equal(2);
+                    expect(b).equal(tester1);
                     expect(b_index).equal(0);
                     expect(b_handShape).equal(1);
 
-                    Junkeng1.off('Disclosed', listener);
-                    done();
-                };
+                    Junkeng1.off('Settled', settledListener);
+                    if (++count == 2) {
+                        done();
+                    }
+                }
 
-                Junkeng1.on('Disclosed', listener);
+                const earnedListener = (addr: string, index: number, amount: number) => {
+                    console.log(`Earned addr ${addr} index ${index} amount ${amount}`);
+
+                    expect(addr).equal(tester1)
+                    expect(index).equal(0);
+                    expect(amount).equal(1);
+
+                    Junkeng1.off('Earned', earnedListener);
+                    if (++count == 2) {
+                        done();
+                    }
+                }
+
+                Junkeng1.on('Settled', settledListener);
+                Junkeng1.on('Earned', earnedListener);
 
                 await Junkeng1.disclose(1).then((tx: TransactionResponse) => tx.wait());
                 await Junkeng2.disclose(2).then((tx: TransactionResponse) => tx.wait());
             })()
         })
 
-        it('Settle Succeed', (done) => {
-            (async () => {
-                const {tester1, tester2} = await hre.getNamedAccounts();
-                const Junkeng1 = await hre.ethers.getContract('Junkeng', tester1);
-                const Junkeng2 = await hre.ethers.getContract('Junkeng', tester2);
+        it('Get Status Succeed (2)', async () => {
+            const { Junkeng1, Junkeng2, tester1, tester2 } = await getContrcts();
 
-                let count = 0;
+            await Junkeng1.join().then((tx: TransactionResponse) => tx.wait());
+            await Junkeng2.join().then((tx: TransactionResponse) => tx.wait());
+            await Junkeng1.disclose(1).then((tx: TransactionResponse) => tx.wait());
+            await Junkeng2.disclose(2).then((tx: TransactionResponse) => tx.wait());
 
-                const listener = (index: number, handShape: number, result: number) => {
-                    console.log(`Settle index ${index} handShape ${handShape} result ${result}`);
+            const status1 = await Junkeng1.getStatus();
+            const status1op = await Junkeng1.getOpponentStatus();
+            const status2 = await Junkeng2.getStatus();
+            const status2op = await Junkeng2.getOpponentStatus();
 
-                    if (index === 0) {
-                        expect(handShape).equal(0);
-                        expect(result).equal(1);
-                    } else if (index === 1) {
-                        expect(handShape).equal(1);
-                        expect(result).equal(-1);
-                    }
+            expect(status1.addr).equal(tester1);
+            expect(status1.index).equal(0);
+            expect(status1.status).equal(2);
+            expect(status1.handShape).equal(1);
+            expect(status1.index).equal(status2op.index);
 
-                    if (++count === 2) {
-                        Junkeng1.off('Settled', listener);
-                        done();
-                    }
-                }
-
-                Junkeng1.on('Settled', listener);
-
-                await Junkeng1.settle().then((tx: TransactionResponse) => tx.wait());
-                await Junkeng2.settle().then((tx: TransactionResponse) => tx.wait());
-            })()
+            expect(status2.addr).equal(tester2);
+            expect(status2.index).equal(1);
+            expect(status2.status).equal(2);
+            expect(status2.handShape).equal(2);
+            expect(status2.index).equal(status1op.index);
         })
 
         it('Coin was earned', async () => {
-            const {tester1} = await hre.getNamedAccounts();
+            const { Junkeng1, Junkeng2, tester1 } = await getContrcts();
+
+            await Junkeng1.join().then((tx: TransactionResponse) => tx.wait());
+            await Junkeng2.join().then((tx: TransactionResponse) => tx.wait());
+            await Junkeng1.disclose(1).then((tx: TransactionResponse) => tx.wait());
+            await Junkeng2.disclose(2).then((tx: TransactionResponse) => tx.wait());
+            await Junkeng1.withdraw().then((tx: TransactionResponse) => tx.wait());
+
             const Coin1 = await hre.ethers.getContract('JunkCoinERC20', tester1);
 
             expect(await Coin1.balanceOf(tester1)).equal(BigNumber.from(1));
+        })
+
+        it('Get coin balance Succeed', async () => {
+            const { Junkeng1, Junkeng2 } = await getContrcts();
+
+            await Junkeng1.join().then((tx: TransactionResponse) => tx.wait());
+            await Junkeng2.join().then((tx: TransactionResponse) => tx.wait());
+            await Junkeng1.disclose(1).then((tx: TransactionResponse) => tx.wait());
+            await Junkeng2.disclose(2).then((tx: TransactionResponse) => tx.wait());
+
+            const coins = await Junkeng1.getCoinBalance(moment().unix());
+
+            expect(coins).equal(1);
         })
     })
 
     describe("Irregular run", () => {
         it('Errors (1)', async () => {
-            const {tester1} = await hre.getNamedAccounts();
-            const Junkeng1 = await hre.ethers.getContract('Junkeng', tester1);
+            const { Junkeng1, Junkeng2 } = await getContrcts();
 
             expect(await Junkeng1.disclose(2)
                 .then((tx: TransactionResponse) => tx.wait())
@@ -112,22 +179,21 @@ describe('Junkeng', () => {
         })
 
         it('Errors (2)', async () => {
-            const {tester1} = await hre.getNamedAccounts();
-            const Junkeng1 = await hre.ethers.getContract('Junkeng', tester1);
+            const { Junkeng1, Junkeng2 } = await getContrcts();
 
-            expect(await Junkeng1.settle()
+            expect(await Junkeng1.withdraw()
                 .then((tx: TransactionResponse) => tx.wait())
                 .catch((e: Error) => {
                     console.log(e.message);
                     return e.message;
                 }))
-                .to.have.string('Not participants');
+                .to.have.string('No coins');
         })
 
         it('Errors (3)', async () => {
-            const {tester1} = await hre.getNamedAccounts();
-            const Junkeng1 = await hre.ethers.getContract('Junkeng', tester1);
+            const { Junkeng1, Junkeng2 } = await getContrcts();
 
+            // Join succeed
             await Junkeng1.join().then((tx: TransactionResponse) => tx.wait());
 
             expect(await Junkeng1.disclose(1)
@@ -137,14 +203,6 @@ describe('Junkeng', () => {
                     return e.message;
                 }))
                 .to.have.string('Opponent not ready');
-
-            expect(await Junkeng1.settle()
-                .then((tx: TransactionResponse) => tx.wait())
-                .catch((e: Error) => {
-                    console.log(e.message);
-                    return e.message;
-                }))
-                .to.have.string('Not disclosed yet');
 
             expect(await Junkeng1.join()
                 .then((tx: TransactionResponse) => tx.wait())
@@ -156,19 +214,12 @@ describe('Junkeng', () => {
         })
 
         it('Errors (4)', async () => {
-            const {tester1, tester2} = await hre.getNamedAccounts();
-            const Junkeng1 = await hre.ethers.getContract('Junkeng', tester1);
-            const Junkeng2 = await hre.ethers.getContract('Junkeng', tester2);
+            const { Junkeng1, Junkeng2 } = await getContrcts();
 
+            // Join succeed
+            await Junkeng1.join().then((tx: TransactionResponse) => tx.wait());
+            // Join succeed
             await Junkeng2.join().then((tx: TransactionResponse) => tx.wait());
-
-            expect(await Junkeng1.settle()
-                .then((tx: TransactionResponse) => tx.wait())
-                .catch((e: Error) => {
-                    console.log(e.message);
-                    return e.message;
-                }))
-                .to.have.string('Not disclosed yet');
 
             expect(await Junkeng1.disclose(5)
                 .then((tx: TransactionResponse) => tx.wait())
@@ -178,6 +229,7 @@ describe('Junkeng', () => {
                 }))
                 .to.have.string('Invalid hand shape');
 
+            // Disclose succeed
             await Junkeng1.disclose(3).then((tx: TransactionResponse) => tx.wait());
 
             expect(await Junkeng1.disclose(2)
@@ -187,62 +239,17 @@ describe('Junkeng', () => {
                     return e.message;
                 }))
                 .to.have.string('Already disclosed');
-
-            expect(await Junkeng1.settle()
-                .then((tx: TransactionResponse) => tx.wait())
-                .catch((e: Error) => {
-                    console.log(e.message);
-                    return e.message;
-                }))
-                .to.have.string('Opponent hasn\'t disclosed hand shape');
         })
 
         it('Errors (5)', async () => {
-            const {tester1, tester2} = await hre.getNamedAccounts();
-            const Junkeng1 = await hre.ethers.getContract('Junkeng', tester1);
-            const Junkeng2 = await hre.ethers.getContract('Junkeng', tester2);
+            const { Junkeng1, Junkeng2 } = await getContrcts();
 
-            await Junkeng2.disclose(3).then((tx: TransactionResponse) => tx.wait());
-
-            expect(await Junkeng2.join()
-                .then((tx: TransactionResponse) => tx.wait())
+            expect(await Junkeng1.getStatus()
                 .catch((e: Error) => {
                     console.log(e.message);
                     return e.message;
                 }))
-                .to.have.string('Already participated');
-        })
-    })
-
-    describe("Rare case", () => {
-        it('Late Settle Succeed', (done) => {
-            (async () => {
-                const {tester1, tester2} = await hre.getNamedAccounts();
-                const Junkeng1 = await hre.ethers.getContract('Junkeng', tester1);
-                const Junkeng2 = await hre.ethers.getContract('Junkeng', tester2);
-
-                await Junkeng1.settle().then((tx: TransactionResponse) => tx.wait());
-                await Junkeng1.join().then((tx: TransactionResponse) => tx.wait());
-
-                let count = 0;
-
-                const listener = (index: number, handShape: number, result: number) => {
-                    console.log(`Settle index ${index} handShape ${handShape} result ${result}`);
-
-                    expect(handShape).equal(3);
-                    expect(result).equal(0);
-
-                    Junkeng2.off('Settled', listener);
-
-                    if (++count === 2) {
-                        done();
-                    }
-                }
-
-                Junkeng2.on('Settled', listener);
-
-                await Junkeng2.settle().then((tx: TransactionResponse) => tx.wait());
-            })()
+                .to.have.string('No registration')
         })
     })
 })

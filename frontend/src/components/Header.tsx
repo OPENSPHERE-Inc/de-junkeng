@@ -1,11 +1,28 @@
-import React, {useState} from "react";
+import React, {useContext, useEffect, useState} from "react";
 import { Link } from "react-router-dom";
+import {CurrentAddressContext, JunkengContext} from "../hardhat/SymfoniContext";
+import moment from "moment";
+import {MatchContext} from "./Match";
 
 const Header = () => {
+    const junkeng = useContext(JunkengContext);
     const [isActive, setActive] = useState(false);
+    const match = useContext(MatchContext);
 
     const toggleHamburger = () => {
         setActive(!isActive);
+    }
+
+    const withdraw = async () => {
+        if (!junkeng.instance) {
+            return;
+        }
+
+        await junkeng.instance.withdraw()
+            .then(() => {
+                match.setCoinBalance('0');
+            })
+            .catch(console.error)
     }
 
     return <nav className="navbar" role="navigation" aria-label="main navigation">
@@ -28,6 +45,28 @@ const Header = () => {
                 <Link to="/" className="navbar-item">
                     Play
                 </Link>
+            </div>
+
+            <div className="navbar-end">
+                <div className="navbar-item">
+                    <span className="icon">
+                        <i className="fas fa-medal"></i>
+                    </span>
+                    <span>Win streak: {match.participant.streak}</span>
+                </div>
+                <div className="navbar-item">
+                    <span className="icon">
+                        <i className="fas fa-coins"></i>
+                    </span>
+                    <span>JunkCoin: {match.coinBalance} JKC</span>
+                </div>
+                <div className="navbar-item">
+                    <div className="buttons">
+                        <button className="button" disabled={match.coinBalance === '0'} onClick={withdraw}>
+                            Withdraw
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </nav>
