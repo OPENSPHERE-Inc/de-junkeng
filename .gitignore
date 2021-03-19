@@ -28,5 +28,4 @@ yarn-error.log*
 #hardhat files
 cache
 artifacts
-frontend/src/hardhat
 
