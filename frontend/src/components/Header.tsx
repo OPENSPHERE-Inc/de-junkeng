@@ -1,7 +1,7 @@
 import React, {useContext, useState} from "react";
 import { Link } from "react-router-dom";
 import {JunkengContext} from "../hardhat/SymfoniContext";
-import {lookupTable, MatchContext, ParticipantStatus} from "./Match";
+import {MatchContext} from "./Match";
 
 const Header = () => {
     const junkeng = useContext(JunkengContext);
