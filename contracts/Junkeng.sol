@@ -14,7 +14,8 @@ contract Junkeng {
     enum MatchStatus {
         NoParticipating,
         Participated,
-        Disclosed
+        Disclosed,
+        Settled
     }
 
     enum HandShape {
@@ -28,6 +29,7 @@ contract Junkeng {
         uint current;  // Current index of queue
         ParticipantStatus status;
         uint streak;  // Win streak
+        uint phase;  // Increment every transaction. This helps frontend status transition
     }
 
     struct Queue {
@@ -147,15 +149,18 @@ contract Junkeng {
                     // Timeout -> Reset
                     participants[msg.sender].status = ParticipantStatus.NoParticipating;
 
-                    if (queue[index].status == MatchStatus.Disclosed) {
-                        // Opponent timeout -> Win
+                    if (queue[index].handShape != HandShape.Undefined && queue[opponent].handShape == HandShape.Undefined) {
+                        // Opponent timeout -> DEFWIN
                         // Get coin
                         coinStock[msg.sender] += ++participants[msg.sender].streak;
 
                         emit Earned(msg.sender, index, participants[msg.sender].streak);
                     } else {
+                        // Self timeout or both timeout -> DEFLOSS
                         participants[msg.sender].streak = 0;
                     }
+
+                    queue[index].status = MatchStatus.Settled;
                 }
             }
         }
@@ -168,6 +173,14 @@ contract Junkeng {
     modifier haveCoins() {
         require(coinStock[msg.sender] > 0, "No coins");
         _;
+    }
+
+    /**
+     * Advance phase value after the transaction process
+     */
+    modifier phaseAdvance() {
+        _;
+        participants[msg.sender].phase++;
     }
 
     /**
@@ -198,7 +211,7 @@ contract Junkeng {
     /**
      * Join match queue
      */
-    function join() public timeout notParticipating {
+    function join() public timeout notParticipating phaseAdvance {
         uint index = queue.length;
 
         queue.push(Queue({
@@ -213,7 +226,8 @@ contract Junkeng {
             participants[msg.sender] = ParticipantContext({
                 current: index,
                 status: ParticipantStatus.Participated,
-                streak: 0
+                streak: 0,
+                phase: 0
             });
         } else {
             // Continuous
@@ -234,7 +248,7 @@ contract Junkeng {
      * Disclose hand shape each other.
      * _handShape: 1 Guu, 2 Choki, 3 Paa
      */
-    function disclose(uint8 _handShape) public participating {
+    function disclose(uint8 _handShape) public participating phaseAdvance {
         uint index = participants[msg.sender].current;
         uint opponent = getOpponent(index);
         address opponentAddr = queue[opponent].addr;
@@ -296,13 +310,17 @@ contract Junkeng {
                 participants[opponentAddr].status = ParticipantStatus.NoParticipating;
                 participants[opponentAddr].streak = 0;
             }
+
+            queue[index].status = MatchStatus.Settled;
+            queue[opponent].status = MatchStatus.Settled;
+            participants[opponentAddr].phase++;
         }
     }
 
     /**
      * Withdraw JunkCoin
      */
-    function withdraw() public timeout haveCoins {
+    function withdraw() public timeout haveCoins phaseAdvance {
         uint amount = coinStock[msg.sender];
         coinStock[msg.sender] = 0;
         IERC20(coin).transferFrom(admin, msg.sender, amount);
@@ -312,7 +330,7 @@ contract Junkeng {
      * Get own status
      */
     function getStatus() view public registered
-        returns(address addr, uint index, uint8 status, uint timestamp, uint8 handShape, uint streak)
+        returns(address addr, uint index, uint8 status, uint timestamp, uint8 handShape, uint streak, uint phase)
     {
         addr = msg.sender;
         index = participants[msg.sender].current;
@@ -320,6 +338,7 @@ contract Junkeng {
         timestamp = queue[index].timestamp;
         handShape = uint8(queue[index].handShape);
         streak = participants[msg.sender].streak;
+        phase = participants[msg.sender].phase;
     }
 
     /**
@@ -332,10 +351,14 @@ contract Junkeng {
             uint index = participants[msg.sender].current;
 
             if (queue[index].status == MatchStatus.Disclosed) {
+                // No settled yet
                 uint opponent = getOpponent(index);
                 uint duration = timestamp - bigger(queue[index].timestamp, queue[opponent].timestamp);
 
-                if (duration > 5 minutes) {
+                if (duration > 5 minutes &&
+                    queue[index].handShape != HandShape.Undefined &&
+                    queue[opponent].handShape == HandShape.Undefined)
+                {
                     // DEFWIN previous match, add (streak + 1) coins to balance
                     coins += participants[msg.sender].streak + 1;
                 }
@@ -349,7 +372,7 @@ contract Junkeng {
      * Get opponent status
      */
     function getOpponentStatus() view public registered
-        returns(address addr, uint index, uint8 status, uint timestamp, uint8 handShape, uint streak)
+        returns(address addr, uint index, uint8 status, uint timestamp, uint8 handShape, uint streak, uint phase)
     {
         uint  self = participants[msg.sender].current;
 
@@ -358,8 +381,9 @@ contract Junkeng {
         status = uint8(queue[index].status);
         timestamp = queue[index].timestamp;
         streak = participants[queue[index].addr].streak;
+        phase = participants[queue[index].addr].phase;
 
         // You can obtain opponent hand shape when disclosed own hand shape
-        handShape = uint8((queue[self].status == MatchStatus.Disclosed) ? queue[index].handShape : HandShape.Undefined);
+        handShape = uint8((queue[self].status >= MatchStatus.Disclosed) ? queue[index].handShape : HandShape.Undefined);
     }
 }

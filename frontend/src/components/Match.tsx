@@ -1,9 +1,16 @@
-import {createContext, useCallback, useContext, useEffect, useState} from "react";
+import React, {createContext, useCallback, useContext, useEffect, useState} from "react";
 import {CurrentAddressContext, JunkengContext} from "../hardhat/SymfoniContext";
 import moment from "moment";
 import {BigNumber} from "ethers";
-import {useToasts} from "react-toast-notifications";
+import createPersistedState from "use-persisted-state";
 
+
+export const lookupTable = [
+    [ -1, -1, -1, -1 ],
+    [  1,  0,  1, -1 ],
+    [  1, -1,  0,  1 ],
+    [  1,  1, -1,  0 ],
+]
 
 export enum MatchStatus {
     PREMATCH,
@@ -15,6 +22,7 @@ export enum ParticipantStatus {
     NOT_PARTICIPATE,
     PARTICIPATED,
     DISCLOSED,
+    SETTLED,
 }
 
 export interface ParticipantState {
@@ -24,6 +32,8 @@ export interface ParticipantState {
     handShape: number,
     timestamp :number,
     streak: number,
+    phase: BigNumber,
+    transient?: boolean,
 }
 
 export const defaultParticipantState: ParticipantState = {
@@ -33,6 +43,7 @@ export const defaultParticipantState: ParticipantState = {
     handShape: 0,
     timestamp: 0,
     streak: 0,
+    phase: BigNumber.from(0),
 }
 
 export interface MatchContextStore {
@@ -52,9 +63,11 @@ export interface MatchContextStore {
     coinBalance: string,
     setCoinBalance: (value: string) => void,
     getCoinBalance: () => Promise<string>,
+    winStreak: number,
+    setWinStreak: (value: number) => void,
 }
 
-export const defaultMatchContextStore: MatchContextStore = {
+export const MatchContext = createContext<MatchContextStore>({
     participant: defaultParticipantState,
     setParticipant: (value) => {},
     opponent: defaultParticipantState,
@@ -69,27 +82,32 @@ export const defaultMatchContextStore: MatchContextStore = {
     setTimestamp: (value) => {},
     getParticipantStatus: async () => ({ participant: defaultParticipantState, opponent: defaultParticipantState }),
     coinBalance: '0',
-    setCoinBalance: (value: string) => {},
+    setCoinBalance: (value) => {},
     getCoinBalance: async () => '0',
-}
+    winStreak: 0,
+    setWinStreak: (value) => {},
+})
 
-
-export const MatchContext = createContext<MatchContextStore>(defaultMatchContextStore);
+// Store participant states to local storage
+const useParticipantState = createPersistedState('junkeng:participantState');
+const useOpponentState = createPersistedState('junkeng:opponentState');
 
 export const useMatch = (): MatchContextStore => {
     const [status, setStatus] = useState(MatchStatus.PREMATCH);
-    const [participant, setParticipant] = useState<ParticipantState>(defaultParticipantState);
-    const [opponent, setOpponent] = useState<ParticipantState>(defaultParticipantState);
+    const [participant, setParticipant] = useParticipantState<ParticipantState>(defaultParticipantState);
+    const [opponent, setOpponent] = useOpponentState<ParticipantState>(defaultParticipantState);
     const [loading, setLoading] = useState(true);
     const [earned, setEarned] = useState(0);
     const [timestamp, setTimestamp] = useState(0);
     const [coinBalance, setCoinBalance] = useState('0');
+    const [winStreak, setWinStreak] = useState(0);
 
     // Local usage
     const junkeng = useContext(JunkengContext);
     const [currentAddress] = useContext(CurrentAddressContext);
-    const { addToast } = useToasts();
 
+
+    // Retrieve coin balance from on-chain
     const getCoinBalance = useCallback(async () => {
         if (!junkeng.instance) {
             return '0';
@@ -105,91 +123,171 @@ export const useMatch = (): MatchContextStore => {
         return balance.toString();
     }, [junkeng.instance]);
 
+
+    // Retrieve participant/opponent status from on-chain
     const getParticipantStatus = useCallback(async () => {
         if (!junkeng.instance) {
             return { participant: defaultParticipantState, opponent: defaultParticipantState }
         }
 
-        const participant = await junkeng.instance.getStatus()
+        // Retrieve participant state
+        const p = await junkeng.instance.getStatus()
             .then((result): ParticipantState => {
-                return {
-                    index: result.index.toNumber(),
-                    status: result.status,
-                    handShape: result.handShape,
-                    addr: result.addr,
-                    timestamp: result.timestamp.toNumber(),
-                    streak: result.streak.toNumber(),
-                }
-            })
-            .catch((e) => {
-                return defaultParticipantState;
-            })
-        console.debug('Participant', participant);
+                const index = result.index;
+                const phase = result.phase;
 
-        const opponent = await junkeng.instance.getOpponentStatus()
-            .then((result): ParticipantState => {
+                if (index.eq(participant.index) && phase.eq(participant.phase)) {
+                    // On-chain state not changed: Do not update local state
+                    console.debug('Use participant transient state');
+                    return participant;
+                } else {
+                    return {
+                        index: result.index.toNumber(),
+                        status: result.status,
+                        handShape: result.handShape,
+                        addr: result.addr,
+                        timestamp: result.timestamp.toNumber(),
+                        streak: result.streak.toNumber(),
+                        phase: result.phase,
+                    }
+                }
+            })
+            .catch((e) => {
+                // FIXME: Reload browser after first join click, the join button is enabled again.
                 return {
-                    index: result.index.toNumber(),
-                    status: result.status,
-                    handShape: result.handShape,
-                    addr: result.addr,
-                    timestamp: result.timestamp.toNumber(),
-                    streak: result.streak.toNumber(),
+                    ...defaultParticipantState,
+                    addr: currentAddress,
+                }
+            })
+
+        // Retrieve opponent state
+        const o = await junkeng.instance.getOpponentStatus()
+            .then((result): ParticipantState => {
+                const index = result.index;
+                const phase = result.phase;
+
+                if (index.eq(opponent.index) && phase.eq(opponent.phase)) {
+                    // On-chain state not changed: Do not update local state
+                    console.debug('Use opponent transient state');
+                    return opponent;
+                } else {
+                    return {
+                        index: result.index.toNumber(),
+                        status: result.status,
+                        handShape: result.handShape,
+                        addr: result.addr,
+                        timestamp: result.timestamp.toNumber(),
+                        streak: result.streak.toNumber(),
+                        phase: result.phase,
+                    }
                 }
             })
             .catch((e) => {
                 return defaultParticipantState;
             })
-        console.debug('Opponent', opponent);
 
         // Always query coin balance
         await getCoinBalance();
 
-        // Update timestamp
-        const timestamp = Math.max(participant.timestamp, opponent.timestamp);
-        setTimestamp(timestamp * 1000);  // Unix secs -> msecs
+        // Timeout is off-chain only event
+        if (o.status >= ParticipantStatus.PARTICIPATED &&
+            (
+                p.status < ParticipantStatus.DISCLOSED ||
+                o.status < ParticipantStatus.DISCLOSED
+            )
+        ) {
+            // Established and not settled yet
+            // Update timestamp
+            const timestamp = Math.max(p.timestamp, o.timestamp);
+            setTimestamp(timestamp * 1000);  // Unix secs -> msecs
 
-        // Keep deadline
-        if (timestamp > 0) {
+            // Keep deadline
             const duration = moment().unix() - timestamp;
             if (duration > 5 * 60) {
-                participant.status = ParticipantStatus.DISCLOSED;
-                opponent.status = ParticipantStatus.DISCLOSED;
+                p.status = ParticipantStatus.DISCLOSED;
+                o.status = ParticipantStatus.DISCLOSED;
             }
+        } else {
+            setTimestamp(0);
         }
 
-        setParticipant(participant);
-        setOpponent(opponent);
+        // Calculate win streak
+        let ws = p.streak;
+        if (p.status === ParticipantStatus.DISCLOSED &&
+            o.status === ParticipantStatus.DISCLOSED)
+        {
+            if (p.handShape === 0) {
+                // DEFLOSS (Off-chan only state)
+                ws = 0;
+            } else if (o.handShape === 0) {
+                // DEFWIN (Off-chan only state)
+                ws = p.streak + 1;
+            } else if (lookupTable[p.handShape][o.handShape] === 1) {
+                // Win
+                ws = p.streak;
+            } else {
+                // Lose
+                ws = 0;
+            }
 
-        return { participant, opponent };
-    }, [junkeng.instance]);
+            setEarned(ws);
+        }
+        setWinStreak(ws);
+
+        console.debug('Participant', p);
+        console.debug('Opponent', o);
+
+        setParticipant(p);
+        setOpponent(o);
+
+        return { participant: p, opponent: o };
+    }, [junkeng.instance, getCoinBalance, participant, opponent, currentAddress]);
 
 
-
+    // Execute once after page reload
     useEffect(() => {
         if (!junkeng.instance) {
             return;
         }
 
-        getParticipantStatus()
-            .then(({participant, opponent}) => {
-                if (participant.status === ParticipantStatus.DISCLOSED && opponent.status === ParticipantStatus.DISCLOSED) {
-                    setStatus(MatchStatus.SETTLED);
-                    console.debug('SETTLED');
-                } else if (participant.status >= ParticipantStatus.PARTICIPATED && opponent.status >= ParticipantStatus.PARTICIPATED) {
-                    setStatus(MatchStatus.ESTABLISHED);
-                    console.debug('ESTABLISHED');
-                } else {
-                    setStatus(MatchStatus.PREMATCH);
-                    console.debug('PREMATCH');
-                }
+        console.debug('Load initial state');
 
-                setLoading(false);
-            })
+        const transition = (
+            {participant, opponent}: {participant: ParticipantState, opponent: ParticipantState}
+        ) => {
+            if (
+                participant.status >= ParticipantStatus.DISCLOSED &&
+                opponent.status >= ParticipantStatus.DISCLOSED &&
+                !participant.transient
+            ) {
+                setStatus(MatchStatus.SETTLED);
+                console.debug('SETTLED');
+            } else if (
+                participant.status >= ParticipantStatus.DISCLOSED ||
+                opponent.status >= ParticipantStatus.DISCLOSED ||
+                (
+                    participant.status === ParticipantStatus.PARTICIPATED &&
+                    opponent.status === ParticipantStatus.PARTICIPATED &&
+                    !participant.transient
+                )
+            ) {
+                setStatus(MatchStatus.ESTABLISHED);
+                console.debug('ESTABLISHED');
+            } else {
+                setStatus(MatchStatus.PREMATCH);
+                console.debug('PREMATCH');
+            }
+            setLoading(false);
+        }
+
+        getParticipantStatus()
+            .then(transition)
             .catch(console.error)
 
-    }, [junkeng.instance, currentAddress])
+    }, [])
 
+
+    // Register event handler
     useEffect(() => {
         if (!junkeng.instance) {
             return;
@@ -197,60 +295,55 @@ export const useMatch = (): MatchContextStore => {
         const instance = junkeng.instance;
 
         const joinedHandler = async (addr: string, index: BigNumber) => {
+            console.debug('Received event: Joined');
             if (addr === currentAddress) {
-                setStatus(MatchStatus.PREMATCH);
-                console.debug('PREMATCH');
-                setParticipant({
-                    ...participant,
-                    index: index.toNumber(),
-                    status: ParticipantStatus.PARTICIPATED,
-                    addr: addr,
-                    timestamp: 0,
-                    handShape: 0,
-                })
+                await getParticipantStatus()
+                    .then(() => {
+                        setStatus(MatchStatus.PREMATCH);
+                        console.debug('PREMATCH');
+                    })
             }
         }
 
         const establishedHandler = async (
             a: string, a_index: BigNumber, b: string, b_index: BigNumber, timestamp: BigNumber
         ) => {
+            console.debug('Received event: Established');
             if (currentAddress === a || currentAddress === b) {
-                setStatus(MatchStatus.ESTABLISHED);
-                console.debug('ESTABLISHED');
-                setTimestamp(timestamp.toNumber() * 1000);  // Unix secs -> msecs
-                await getParticipantStatus();
+                await getParticipantStatus()
+                    .then(() => {
+                        setStatus(MatchStatus.ESTABLISHED);
+                        console.debug('ESTABLISHED');
+                    })
             }
         }
 
         const disclosedHandler = async (addr: string, index: BigNumber) => {
+            console.debug('Received event: Disclosed');
             if (currentAddress === addr) {
-                setStatus(MatchStatus.ESTABLISHED);
-                console.debug('ESTABLISHED');
-                await getParticipantStatus();
+                await getParticipantStatus()
+                    .then(() => {
+                        setStatus(MatchStatus.ESTABLISHED);
+                        console.debug('ESTABLISHED');
+                    })
             }
         }
 
         const settledHandler = async (
             a: string, a_index: BigNumber, a_handShape: number, b: string, b_index: BigNumber, b_handShape: number
         ) => {
+            console.debug('Received event: Settled');
             if (currentAddress === a || currentAddress === b) {
-                setStatus(MatchStatus.SETTLED);
-                console.debug('SETTLED');
-                setTimestamp(0);
-                setParticipant({
-                    ...participant,
-                    handShape: currentAddress === a ? a_handShape : b_handShape,
-                    status: ParticipantStatus.DISCLOSED,
-                })
-                setOpponent({
-                    ...opponent,
-                    handShape: currentAddress === a ? b_handShape : a_handShape,
-                    status: ParticipantStatus.DISCLOSED,
-                })
+                await getParticipantStatus()
+                    .then(() => {
+                        setStatus(MatchStatus.SETTLED);
+                        console.debug('SETTLED');
+                    })
             }
         }
 
         const earnedHandler = async (addr: string, index: BigNumber, amount: BigNumber) => {
+            console.debug('Received event: Earned');
             if (currentAddress === addr) {
                 setEarned(amount.toNumber());
                 await getCoinBalance();
@@ -270,7 +363,16 @@ export const useMatch = (): MatchContextStore => {
             instance.off('Settled', settledHandler);
             instance.off('Earned', earnedHandler);
         }
-    }, [junkeng.instance, currentAddress])
+    }, [
+        junkeng.instance,
+        currentAddress,
+        participant,
+        setParticipant,
+        opponent,
+        setOpponent,
+        getCoinBalance,
+        getParticipantStatus,
+    ])
 
     return {
         participant,
@@ -288,6 +390,8 @@ export const useMatch = (): MatchContextStore => {
         getParticipantStatus,
         coinBalance,
         setCoinBalance,
-        getCoinBalance
+        getCoinBalance,
+        winStreak,
+        setWinStreak,
     }
 }

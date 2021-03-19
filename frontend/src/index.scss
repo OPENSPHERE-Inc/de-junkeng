@@ -10,4 +10,9 @@ $family-sans-serif: 'Noto Sans JP';
 
 @import "~bulma";
 
-@import "./App.scss";
+@include desktop {
+  .navbar {
+    max-width: $desktop - (2 * $gap);
+    margin: 0 auto;
+  }
+}

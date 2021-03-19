@@ -9,7 +9,7 @@ const Dashboard = () => {
 
     return <MatchContext.Provider value={match}>
         <Layout>
-            <div className="container">
+            <div className="container is-max-desktop">
                 <div className="content">
                     <Playground />
                 </div>

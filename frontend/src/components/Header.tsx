@@ -1,8 +1,7 @@
-import React, {useContext, useEffect, useState} from "react";
+import React, {useContext, useState} from "react";
 import { Link } from "react-router-dom";
-import {CurrentAddressContext, JunkengContext} from "../hardhat/SymfoniContext";
-import moment from "moment";
-import {MatchContext} from "./Match";
+import {JunkengContext} from "../hardhat/SymfoniContext";
+import {lookupTable, MatchContext, ParticipantStatus} from "./Match";
 
 const Header = () => {
     const junkeng = useContext(JunkengContext);
@@ -14,12 +13,9 @@ const Header = () => {
     }
 
     const withdraw = async () => {
-        if (!junkeng.instance) {
-            return;
-        }
-
-        await junkeng.instance.withdraw()
+        await junkeng.instance?.withdraw()
             .then(() => {
+                // FIXME: Reload browser after withdraw click, the coin balance appears again until tx is accepted.
                 match.setCoinBalance('0');
             })
             .catch(console.error)
@@ -52,7 +48,7 @@ const Header = () => {
                     <span className="icon">
                         <i className="fas fa-medal"></i>
                     </span>
-                    <span>Win streak: {match.participant.streak}</span>
+                    <span>Win streak: {match.winStreak}</span>
                 </div>
                 <div className="navbar-item">
                     <span className="icon">

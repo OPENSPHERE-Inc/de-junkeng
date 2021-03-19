@@ -35,7 +35,7 @@
   },
   "scripts": {
     "test": "npx hardhat test",
-    "serve": "npx hardhat node --watch",
+    "serve": "npx hardhat node --watch --network hardhat",
     "frontend": "cd frontend && npm run start"
   }
 }
