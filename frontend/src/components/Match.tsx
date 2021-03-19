@@ -298,9 +298,14 @@ export const useMatch = (): MatchContextStore => {
             console.debug('Received event: Joined');
             if (addr === currentAddress) {
                 await getParticipantStatus()
-                    .then(() => {
-                        setStatus(MatchStatus.PREMATCH);
-                        console.debug('PREMATCH');
+                    .then(({participant, opponent}) => {
+                        if (participant.status === ParticipantStatus.PARTICIPATED && opponent.status === ParticipantStatus.PARTICIPATED) {
+                            setStatus(MatchStatus.ESTABLISHED);
+                            console.debug('ESTABLISHED');
+                        } else {
+                            setStatus(MatchStatus.PREMATCH);
+                            console.debug('PREMATCH');
+                        }
                     })
             }
         }
@@ -322,9 +327,14 @@ export const useMatch = (): MatchContextStore => {
             console.debug('Received event: Disclosed');
             if (currentAddress === addr) {
                 await getParticipantStatus()
-                    .then(() => {
-                        setStatus(MatchStatus.ESTABLISHED);
-                        console.debug('ESTABLISHED');
+                    .then(({participant, opponent}) => {
+                        if (participant.status >= ParticipantStatus.DISCLOSED && opponent.status >= ParticipantStatus.DISCLOSED) {
+                            setStatus(MatchStatus.SETTLED);
+                            console.debug('SETTLED');
+                        } else {
+                            setStatus(MatchStatus.ESTABLISHED);
+                            console.debug('ESTABLISHED');
+                        }
                     })
             }
         }
