@@ -1,21 +1,31 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import Layout from "../components/Layout";
-import Playground from "../components/Playground";
-import {MatchContext, useMatch} from "../components/Match";
-import withHardhat from "../components/Hardhat";
 
 const Dashboard = () => {
-    const match = useMatch();
+    return <Layout>
+        <div className="container is-max-desktop">
+            <div className="content">
+                <div className="columns">
+                    <div className="column is-three-fifths is-offset-one-fifth">
+                        <img src="/janken_boys.png" width="100%" />
+                    </div>
+                </div>
 
-    return <MatchContext.Provider value={match}>
-        <Layout>
-            <div className="container is-max-desktop">
-                <div className="content">
-                    <Playground />
+
+                <article className="message is-warning">
+                    <div className="message-body">
+                        To play, required installing <a href="https://metamask.io/">MetaMask</a> and connect Rinkeby Test Network.
+                        Also need some ETHs for your commitment of transaction. (Grab free ETHs <a href="https://faucet.rinkeby.io/">here</a>)
+                    </div>
+                </article>
+
+                <div className="buttons is-grouped is-centered">
+                    <Link to="/play" className="button is-primary is-large">Connect MetaMask</Link>
                 </div>
             </div>
-        </Layout>
-    </MatchContext.Provider>
+        </div>
+    </Layout>
 }
 
-export default withHardhat(Dashboard);
+export default Dashboard;

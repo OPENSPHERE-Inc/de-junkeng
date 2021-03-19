@@ -38,23 +38,35 @@ const Header = () => {
 
         <div id="navbarMain" className={`navbar-menu ${isActive ? 'is-active' : ''}`}>
             <div className="navbar-start">
-                <Link to="/" className="navbar-item">
+                <Link to="/play" className="navbar-item">
                     Play
                 </Link>
+                <a href="https://github.com/OPENSPHERE-Inc/de-junkeng" className="navbar-item">
+                    <span className="icon-text">
+                        <span className="icon">
+                            <i className="fab fa-github"></i>
+                        </span>
+                        <span>GitHub Repo</span>
+                    </span>
+                </a>
             </div>
 
-            <div className="navbar-end">
+            { junkeng.instance && <div className="navbar-end">
                 <div className="navbar-item">
-                    <span className="icon">
-                        <i className="fas fa-medal"></i>
+                    <span className="icon-text">
+                        <span className="icon">
+                            <i className="fas fa-medal"></i>
+                        </span>
+                        <span>Win streak: {match.winStreak}</span>
                     </span>
-                    <span>Win streak: {match.winStreak}</span>
                 </div>
                 <div className="navbar-item">
-                    <span className="icon">
-                        <i className="fas fa-coins"></i>
+                    <span className="icon-text">
+                        <span className="icon">
+                            <i className="fas fa-coins"></i>
+                        </span>
+                        <span>JunkCoin: {match.coinBalance} JKC</span>
                     </span>
-                    <span>JunkCoin: {match.coinBalance} JKC</span>
                 </div>
                 <div className="navbar-item">
                     <div className="buttons">
@@ -63,7 +75,7 @@ const Header = () => {
                         </button>
                     </div>
                 </div>
-            </div>
+            </div> }
         </div>
     </nav>
 }

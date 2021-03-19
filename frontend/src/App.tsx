@@ -1,16 +1,15 @@
 import React from "react";
 import {BrowserRouter, Route, Switch} from "react-router-dom";
+import Play from "./pages/Play";
 import Dashboard from "./pages/Dashboard";
-import { ToastProvider } from 'react-toast-notifications'
 
 function App() {
-    return <ToastProvider>
-        <BrowserRouter>
-            <Switch>
-                <Route path="/" component={Dashboard} />
-            </Switch>
-        </BrowserRouter>
-    </ToastProvider>
+    return <BrowserRouter>
+        <Switch>
+            <Route path="/play" component={Play} />
+            <Route path="/" component={Dashboard} />
+        </Switch>
+    </BrowserRouter>
 }
 
 export default App;
