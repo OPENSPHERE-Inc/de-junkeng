@@ -213,9 +213,7 @@ export const useMatch = (): MatchContextStore => {
 
         // Calculate win streak
         let ws = p.streak;
-        if (p.status === ParticipantStatus.DISCLOSED &&
-            o.status === ParticipantStatus.DISCLOSED)
-        {
+        if (p.status === ParticipantStatus.DISCLOSED && o.status === ParticipantStatus.DISCLOSED) {
             if (p.handShape === 0) {
                 // DEFLOSS (Off-chan only state)
                 ws = 0;
@@ -229,7 +227,8 @@ export const useMatch = (): MatchContextStore => {
                 // Lose
                 ws = 0;
             }
-
+            setEarned(ws);
+        } else if (p.status === ParticipantStatus.SETTLED && o.status === ParticipantStatus.SETTLED) {
             setEarned(ws);
         }
         setWinStreak(ws);
@@ -360,11 +359,19 @@ export const useMatch = (): MatchContextStore => {
             }
         }
 
+        const withdrewHandler = async (addr: string, amount: BigNumber) => {
+            console.debug('Received event: Withdrew');
+            if (currentAddress === addr) {
+                setCoinBalance('0');
+            }
+        }
+
         instance.on('Joined', joinedHandler);
         instance.on('Established', establishedHandler);
         instance.on('Disclosed', disclosedHandler);
         instance.on('Settled', settledHandler);
         instance.on('Earned', earnedHandler);
+        instance.on('Withdrew', withdrewHandler);
 
         return () => {
             instance.off('Joined', joinedHandler);
@@ -372,6 +379,7 @@ export const useMatch = (): MatchContextStore => {
             instance.off('Disclosed', disclosedHandler);
             instance.off('Settled', settledHandler);
             instance.off('Earned', earnedHandler);
+            instance.off('Withdrew', withdrewHandler);
         }
     }, [
         junkeng.instance,

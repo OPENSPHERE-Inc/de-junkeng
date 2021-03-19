@@ -65,6 +65,7 @@ interface JunkengInterface extends ethers.utils.Interface {
     "Established(address,uint256,address,uint256,uint256)": EventFragment;
     "Joined(address,uint256)": EventFragment;
     "Settled(address,uint256,uint8,address,uint256,uint8)": EventFragment;
+    "Withdrew(address,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "Disclosed"): EventFragment;
@@ -72,6 +73,7 @@ interface JunkengInterface extends ethers.utils.Interface {
   getEvent(nameOrSignatureOrTopic: "Established"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Joined"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Settled"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Withdrew"): EventFragment;
 }
 
 export class Junkeng extends Contract {
@@ -432,6 +434,8 @@ export class Junkeng extends Contract {
       b_index: null,
       b_handShape: null
     ): EventFilter;
+
+    Withdrew(addr: null, amount: null): EventFilter;
   };
 
   estimateGas: {

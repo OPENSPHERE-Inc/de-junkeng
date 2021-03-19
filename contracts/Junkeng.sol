@@ -74,6 +74,10 @@ contract Junkeng {
      */
     event Earned(address addr, uint index, uint amount);
 
+    /**
+     * Emit when withdrew JunkCoin
+     */
+    event Withdrew(address addr, uint amount);
 
     /**
      * Sender is registered
@@ -324,6 +328,8 @@ contract Junkeng {
         uint amount = coinStock[msg.sender];
         coinStock[msg.sender] = 0;
         IERC20(coin).transferFrom(admin, msg.sender, amount);
+
+        emit Withdrew(msg.sender, amount);
     }
 
     /**
