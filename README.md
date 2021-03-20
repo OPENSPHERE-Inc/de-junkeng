@@ -37,7 +37,7 @@ RINKEBY_URL=https://eth-mainnet.alchemyapi.io/v2/123abc123abc123abc123abc123abcd
 注）上記の値はダミーなのでそのまま使えません。
 
 - `WALLET_MNEMONIC`: ウォレットのニーモニック。尚、デプロイには 1 番目のアカウントが使用されます。
-- `RINKEBY_URL`: HTTP_RPC の URL を指定してください。geth 等を使用してもいいですし、めんどくさければ [Alchemy](https://www.alchemyapi.io/) 等で借りても（基本無料）良いです。
+- `RINKEBY_URL`: JSON-RPC の URL を指定してください。geth 等を使用してもいいですし、めんどくさければ [Alchemy](https://www.alchemyapi.io/) 等で借りても（基本無料）良いです。
 
 ### スマートコントラクトのデプロイ
 
