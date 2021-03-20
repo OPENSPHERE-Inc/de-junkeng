@@ -1,4 +1,4 @@
-# Decentralised じゃんけん "DeJunkeng"
+# Decentralized じゃんけん "DeJunkeng"
 
 1 対 1 じゃんけんゲームを dApps で実装。
 
