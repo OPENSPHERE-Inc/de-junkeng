@@ -4,10 +4,10 @@
 import { providers, Signer, ethers } from "ethers";
 import React, { useEffect, useState } from "react";
 import Web3Modal, { IProviderOptions } from "web3modal";
-import JunkCoinERC20Deployment from "./deployments/localhost/JunkCoinERC20.json";
+import JunkCoinERC20Deployment from "./deployments/rinkeby/JunkCoinERC20.json";
 import { JunkCoinERC20 } from "./typechain/JunkCoinERC20";
 import { JunkCoinERC20__factory } from "./typechain/factories/JunkCoinERC20__factory";
-import JunkengDeployment from "./deployments/localhost/Junkeng.json";
+import JunkengDeployment from "./deployments/rinkeby/Junkeng.json";
 import { Junkeng } from "./typechain/Junkeng";
 import { Junkeng__factory } from "./typechain/factories/Junkeng__factory";
 import { ERC20 } from "./typechain/ERC20";

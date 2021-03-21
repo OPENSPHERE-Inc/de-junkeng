@@ -27,17 +27,17 @@
   integrity sha512-bvaTH34PMCbv6anRa9I/0zjLJgY4EuznbEMgbV77JBCQ9KNC46rzi0avuxpOfu+xDjPEtSFGqVEOr5GlUSGudA==
 
 "@ethereum-waffle/chai@^3.3.0":
-  version "3.3.0"
-  resolved "https://registry.yarnpkg.com/@ethereum-waffle/chai/-/chai-3.3.0.tgz#8aba94be27535cf12419e545e5f7027226ef732f"
-  integrity sha512-KqPH9DdTmfgM6dGa6M7/rUillYdRsUVkIiFLgVdLDvtaALITb6IseGNGRRerG/J6wUeIUQxOJY0ACZRYPCItaQ==
+  version "3.3.1"
+  resolved "https://registry.yarnpkg.com/@ethereum-waffle/chai/-/chai-3.3.1.tgz#3f20b810d0fa516f19af93c50c3be1091333fa8e"
+  integrity sha512-+vepCjttfOzCSnmiVEmd1bR8ctA2wYVrtWa8bDLhnTpj91BIIHotNDTwpeq7fyjrOCIBTN3Ai8ACfjNoatc4OA==
   dependencies:
-    "@ethereum-waffle/provider" "^3.3.0"
+    "@ethereum-waffle/provider" "^3.3.1"
     ethers "^5.0.0"
 
 "@ethereum-waffle/compiler@^3.3.0":
-  version "3.3.0"
-  resolved "https://registry.yarnpkg.com/@ethereum-waffle/compiler/-/compiler-3.3.0.tgz#26c2e9228f7118961625f3ace179b6c7004e9a6f"
-  integrity sha512-q5Nd0vlLeEYKszdJUNvIIuP2vj/tFkWt1LCvsIcFHIzxyIoLeaCFNzJI0UQ/s298svfPY59SyL7dKNcQWwbaWQ==
+  version "3.3.1"
+  resolved "https://registry.yarnpkg.com/@ethereum-waffle/compiler/-/compiler-3.3.1.tgz#946128fd565aa4347075fd716dbd0f3f38189280"
+  integrity sha512-X/TeQugt94AQwXEdCjIQxcXYGawNulVBYEBE7nloj4wE/RBxNolXwjoVNjcS4kuiMMbKkdO0JkL5sn6ixx8bDg==
   dependencies:
     "@resolver-engine/imports" "^0.3.3"
     "@resolver-engine/imports-fs" "^0.3.3"
@@ -68,10 +68,10 @@
     "@ethersproject/abi" "^5.0.1"
     ethers "^5.0.1"
 
-"@ethereum-waffle/provider@^3.3.0":
-  version "3.3.0"
-  resolved "https://registry.yarnpkg.com/@ethereum-waffle/provider/-/provider-3.3.0.tgz#3cacdb597ab04127c4c0b8a5b13e95ea33e932ab"
-  integrity sha512-JcHGwDz8ciqwDXcZXLzOif8AY2n4fUG5ju0ZQCGRkYiRHHTrbqzwWAtFsEHetWAxCi3VGlSgeN833DGulnQaZg==
+"@ethereum-waffle/provider@^3.3.0", "@ethereum-waffle/provider@^3.3.1":
+  version "3.3.1"
+  resolved "https://registry.yarnpkg.com/@ethereum-waffle/provider/-/provider-3.3.1.tgz#62e13fc45ce918a3992b18e17279e32ed22a01da"
+  integrity sha512-I7iziCqvkVhfaYKRRjUoEK3JHne5PffLd8dokI9RvDighKn/OA4P8mMb400EGmuDG5NTVTM5hdnTa2jIYwrhyA==
   dependencies:
     "@ethereum-waffle/ens" "^3.2.2"
     ethers "^5.0.1"
@@ -473,7 +473,6 @@
     util.promisify "^1.0.0"
 
 "@nomiclabs/hardhat-ethers@npm:hardhat-deploy-ethers", hardhat-deploy-ethers@^0.3.0-beta.7:
-  name "@nomiclabs/hardhat-ethers"
   version "0.3.0-beta.7"
   resolved "https://registry.yarnpkg.com/hardhat-deploy-ethers/-/hardhat-deploy-ethers-0.3.0-beta.7.tgz#860d86b84ed3c4fdef64283ccf1e8d5623454d02"
   integrity sha512-JKMNte6vudu9LSNqgmBtNxc1gfxp3NUcPKVAf/FANHfl9pa/mBGg6hpQO7tD8CLkAbe6f4K5BjyYIPWX3p7MKw==
@@ -686,9 +685,9 @@
     "@types/node" "*"
 
 "@types/mocha@^8.0.4":
-  version "8.2.1"
-  resolved "https://registry.yarnpkg.com/@types/mocha/-/mocha-8.2.1.tgz#f3f3ae4590c5386fc7c543aae9b78d4cf30ffee9"
-  integrity sha512-NysN+bNqj6E0Hv4CTGWSlPzMW6vTKjDpOteycDkV4IWBsO+PU48JonrPzV9ODjiI2XrjmA05KInLgF5ivZ/YGQ==
+  version "8.2.2"
+  resolved "https://registry.yarnpkg.com/@types/mocha/-/mocha-8.2.2.tgz#91daa226eb8c2ff261e6a8cbf8c7304641e095e0"
+  integrity sha512-Lwh0lzzqT5Pqh6z61P3c3P5nm6fzQK/MMHl9UKeneAeInVflBSz1O2EkX6gM6xfJd7FBXBY5purtLx7fUiZ7Hw==
 
 "@types/node-fetch@^2.5.5":
   version "2.5.8"
@@ -2552,9 +2551,9 @@ ee-first@1.1.1:
   integrity sha1-WQxhFWsK4vTwJVcyoViyZrxWsh0=
 
 electron-to-chromium@^1.3.47:
-  version "1.3.692"
-  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.3.692.tgz#4d00479055a7282cdd1b19caec09ed7779529640"
-  integrity sha512-Ix+zDUAXWZuUzqKdhkgN5dP7ZM+IwMG4yAGFGDLpGJP/3vNEEwuHG1LIhtXUfW0FFV0j38t5PUv2n/3MFSRviQ==
+  version "1.3.693"
+  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.3.693.tgz#5089c506a925c31f93fcb173a003a22e341115dd"
+  integrity sha512-vUdsE8yyeu30RecppQtI+XTz2++LWLVEIYmzeCaCRLSdtKZ2eXqdJcrs85KwLiPOPVc6PELgWyXBsfqIvzGZag==
 
 elliptic@6.5.4, elliptic@^6.4.0, elliptic@^6.5.2, elliptic@^6.5.3:
   version "6.5.4"
