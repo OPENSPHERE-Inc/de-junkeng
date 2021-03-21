@@ -39,6 +39,7 @@
     "test": "npx hardhat test --network hardhat",
     "serve": "npx hardhat node --watch --network hardhat",
     "deploy": "npx hardhat deploy",
+	"react": "npx hardhat react",
     "frontend": "cd frontend && npm run start"
   }
 }
