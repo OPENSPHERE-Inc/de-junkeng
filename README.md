@@ -113,4 +113,4 @@ MetaMask で `0xf25Aded893150faDC14aaDf817471f3C44c325eD` を Add Token すれ�
 - [hardhat-react](https://github.com/symfoni/symfoni-monorepo/tree/master/packages/hardhat-react)
 - [ethers](https://docs.ethers.io/v5/)
 - [web3modal](https://github.com/Web3Modal/web3modal)
-- React
+- [React](https://ja.reactjs.org/)
