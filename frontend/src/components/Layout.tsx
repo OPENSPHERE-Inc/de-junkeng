@@ -7,7 +7,7 @@ const Layout: React.FC = ({ children }) => {
     return <div className="osi-frame">
         <Helmet>
             <html lang="ja"/>
-            <title>CASTRA Quest</title>
+            <title>DeJunkeng</title>
         </Helmet>
         <Header />
         <section className="section">
