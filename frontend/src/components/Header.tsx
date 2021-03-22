@@ -41,6 +41,9 @@ const Header = () => {
                 <Link to="/play" className="navbar-item">
                     Play
                 </Link>
+                <a href="https://blog.opensphere.co.jp/posts/dapps001" className="navbar-item">
+                    How to
+                </a>
                 <a href="https://github.com/OPENSPHERE-Inc/de-junkeng" className="navbar-item">
                     <span className="icon-text">
                         <span className="icon">
