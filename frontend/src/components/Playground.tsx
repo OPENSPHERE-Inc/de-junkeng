@@ -18,7 +18,7 @@ const PreMatch = () => {
 
     const join = () => {
         junkeng.instance?.join()
-            .then(() => {
+            .then(async (tx) => {
                 match.setParticipant({
                     ...match.participant,
                     status: ParticipantStatus.PARTICIPATED,
@@ -31,6 +31,12 @@ const PreMatch = () => {
                 })
                 match.setStatus(MatchStatus.PREMATCH);
                 console.debug('PREMATCH');
+
+                return tx.wait();
+            })
+            .then(async () => {
+                // After transaction has been completed.
+                return match.getParticipantStatus();
             })
             .catch((e) => {
                 console.error(e);
@@ -59,13 +65,18 @@ const Established = () => {
 
     const disclose = (handShape: number) => {
         junkeng.instance?.disclose(handShape)
-            .then(() => {
+            .then(async (tx) => {
                 match.setParticipant({
                     ...match.participant,
                     handShape: handShape,
                     status: ParticipantStatus.DISCLOSED,
                     transient: true,  // State is transient (off-chain only)
                 })
+                return tx.wait();
+            })
+            .then(async () => {
+                // After transaction has been completed.
+                return match.getParticipantStatus();
             })
             .catch((e) => {
                 console.error(e);

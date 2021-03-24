@@ -8,7 +8,7 @@ const Dashboard = () => {
             <div className="content">
                 <div className="columns">
                     <div className="column is-three-fifths is-offset-one-fifth">
-                        <img src="/janken_boys.png" width="100%" />
+                        <img src="/janken_boys.png" width="100%" alt="Jankan Boys" />
                     </div>
                 </div>
 
