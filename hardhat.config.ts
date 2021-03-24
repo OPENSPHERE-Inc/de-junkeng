@@ -43,6 +43,12 @@ const config: HardhatUserConfig = {
             accounts: {
                 mnemonic: process.env.WALLET_MNEMONIC
             }
+        },
+        mumbai: {
+            url: "https://rpc-mumbai.maticvigil.com/",
+            accounts: {
+                mnemonic: process.env.WALLET_MNEMONIC
+            },
         }
     },
     namedAccounts: {
