@@ -9,6 +9,7 @@ import "hardhat-deploy";
 import "@symfoni/hardhat-react";
 import "hardhat-typechain";
 import "@typechain/ethers-v5";
+import "@eth-optimism/plugins/hardhat/compiler";
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -30,7 +31,7 @@ const config: HardhatUserConfig = {
     react: {
         providerPriority: ["web3modal", "hardhat"],
     },
-    defaultNetwork: "rinkeby",
+    defaultNetwork: "layer2",
     networks: {
         hardhat: {
             inject: false, // optional. If true, it will EXPOSE your mnemonic in your frontend code. Then it would be available as an "in-page browser wallet" / signer which can sign without confirmation.
@@ -38,17 +39,21 @@ const config: HardhatUserConfig = {
                 mnemonic: "test test test test test test test test test test test junk", // test test test test test test test test test test test junk
             },
         },
-        rinkeby: {
-            url: process.env.RINKEBY_URL,
-            accounts: {
-                mnemonic: process.env.WALLET_MNEMONIC
-            }
+        layer2: {
+            url: "http://localhost:8545",
+            accounts: [
+                "0x754fde3f5e60ef2c7649061e06957c29017fe21032a8017132c0078e37f6193a",
+                "0xd2ab07f7c10ac88d5f86f1b4c1035d5195e81f27dbe62ad65e59cbf88205629b",
+                "0x23d9aeeaa08ab710a57972eb56fc711d9ab13afdecc92c89586e0150bfa380a6"
+            ]
         },
-        mumbai: {
-            url: "https://rpc-mumbai.maticvigil.com/",
-            accounts: {
-                mnemonic: process.env.WALLET_MNEMONIC
-            },
+        layer1: {
+            url: "http://localhost:9545",
+            accounts: [
+                "0x754fde3f5e60ef2c7649061e06957c29017fe21032a8017132c0078e37f6193a",
+                "0xd2ab07f7c10ac88d5f86f1b4c1035d5195e81f27dbe62ad65e59cbf88205629b",
+                "0x23d9aeeaa08ab710a57972eb56fc711d9ab13afdecc92c89586e0150bfa380a6"
+            ]
         }
     },
     namedAccounts: {

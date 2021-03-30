@@ -9,6 +9,8 @@
   "author": "Shinichi Hanayama",
   "license": "MIT",
   "devDependencies": {
+    "@eth-optimism/contracts": "^0.1.11",
+    "@eth-optimism/plugins": "^1.0.0-alpha.2",
     "@nomiclabs/hardhat-ethers": "npm:hardhat-deploy-ethers",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
     "@openzeppelin/contracts": "^3.2.0",
@@ -19,6 +21,7 @@
     "@types/mocha": "^8.0.4",
     "@types/node": "^14.14.9",
     "chai": "^4.2.0",
+    "cross-env": "^7.0.3",
     "dotenv": "^8.2.0",
     "ethereum-waffle": "^3.2.0",
     "ethers": "^5.0.21",
@@ -38,8 +41,12 @@
   "scripts": {
     "test": "npx hardhat test --network hardhat",
     "serve": "npx hardhat node --watch --network hardhat",
-    "deploy": "npx hardhat deploy",
-	"react": "npx hardhat react",
-    "frontend": "cd frontend && npm run start"
+    "deploy": "cross-env TARGET=ovm npx hardhat run --no-compile scripts/deploy_JunkCoinERC20_L1.ts",
+    "compile:evm": "npx hardhat compile --no-typechain",
+    "compile:ovm": "cross-env TARGET=ovm npx hardhat compile",
+    "react": "npx hardhat react",
+    "frontend": "cd frontend && npm run start",
+    "console:evm": "npx hardhat console --no-compile --network layer1",
+    "console:ovm": "cross-env TARGEt=ovm npx hardhat console --no-compile --network layer2"
   }
 }

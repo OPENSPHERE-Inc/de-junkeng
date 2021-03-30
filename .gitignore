@@ -28,5 +28,7 @@ yarn-error.log*
 #hardhat files
 cache
 artifacts
+cache-ovm
+artifacts-ovm
 frontend/src/hardhat/deployments/hardhat
 frontend/src/hardhat/deployments/localhost

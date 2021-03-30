@@ -3,6 +3,7 @@ import {CurrentAddressContext, JunkengContext} from "../hardhat/SymfoniContext";
 import moment from "moment";
 import {BigNumber} from "ethers";
 import createPersistedState from "use-persisted-state";
+import {Junkeng} from "../hardhat/typechain";
 
 
 export const lookupTable = [
@@ -65,6 +66,7 @@ export interface MatchContextStore {
     getCoinBalance: () => Promise<string>,
     winStreak: number,
     setWinStreak: (value: number) => void,
+    getJunkengInstance: () => Junkeng | undefined,
 }
 
 export const MatchContext = createContext<MatchContextStore>({
@@ -86,6 +88,7 @@ export const MatchContext = createContext<MatchContextStore>({
     getCoinBalance: async () => '0',
     winStreak: 0,
     setWinStreak: (value) => {},
+    getJunkengInstance: () => undefined,
 })
 
 // Store participant states to local storage
@@ -107,13 +110,22 @@ export const useMatch = (): MatchContextStore => {
     const [currentAddress] = useContext(CurrentAddressContext);
 
 
+    // Retrieve Junkeng contract instance
+    const getJunkengInstance = useCallback(() => {
+        return process.env.REACT_APP_JUNKENG_ADDR
+            ? junkeng.instance?.attach(process.env.REACT_APP_JUNKENG_ADDR)
+            : junkeng.instance;
+    }, [junkeng.instance])
+
+
     // Retrieve coin balance from on-chain
     const getCoinBalance = useCallback(async () => {
-        if (!junkeng.instance) {
+        const instance = getJunkengInstance();
+        if (!instance) {
             return '0';
         }
 
-        const balance = await junkeng.instance.getCoinBalance(moment().unix())
+        const balance = await instance.getCoinBalance(moment().unix())
             .catch((e) => {
                 console.error(e);
                 return '0'
@@ -121,17 +133,18 @@ export const useMatch = (): MatchContextStore => {
         setCoinBalance(balance.toString());
 
         return balance.toString();
-    }, [junkeng.instance]);
+    }, [getJunkengInstance]);
 
 
     // Retrieve participant/opponent status from on-chain
     const getParticipantStatus = useCallback(async () => {
-        if (!junkeng.instance) {
+        const instance = getJunkengInstance();
+        if (!instance) {
             return { participant: defaultParticipantState, opponent: defaultParticipantState }
         }
 
         // Retrieve participant state
-        const p = await junkeng.instance.getStatus()
+        const p = await instance.getStatus()
             .then((result): ParticipantState => {
                 const index = result.index;
                 const phase = result.phase;
@@ -153,6 +166,7 @@ export const useMatch = (): MatchContextStore => {
                 }
             })
             .catch((e) => {
+                console.error(e);
                 // FIXME: Reload browser after first join click, the join button is enabled again.
                 return {
                     ...defaultParticipantState,
@@ -161,7 +175,7 @@ export const useMatch = (): MatchContextStore => {
             })
 
         // Retrieve opponent state
-        const o = await junkeng.instance.getOpponentStatus()
+        const o = await instance.getOpponentStatus()
             .then((result): ParticipantState => {
                 const index = result.index;
                 const phase = result.phase;
@@ -183,6 +197,7 @@ export const useMatch = (): MatchContextStore => {
                 }
             })
             .catch((e) => {
+                console.error(e);
                 return defaultParticipantState;
             })
 
@@ -240,15 +255,11 @@ export const useMatch = (): MatchContextStore => {
         setOpponent(o);
 
         return { participant: p, opponent: o };
-    }, [junkeng.instance, getCoinBalance, participant, opponent, currentAddress]);
+    }, [getJunkengInstance, getCoinBalance, participant, opponent, currentAddress]);
 
 
     // Execute once after page reload
     useEffect(() => {
-        if (!junkeng.instance) {
-            return;
-        }
-
         console.debug('Load initial state');
 
         const transition = (
@@ -288,10 +299,10 @@ export const useMatch = (): MatchContextStore => {
 
     // Register event handler
     useEffect(() => {
-        if (!junkeng.instance) {
+        const instance = getJunkengInstance();
+        if (!instance) {
             return;
         }
-        const instance = junkeng.instance;
 
         const joinedHandler = async (addr: string, index: BigNumber) => {
             console.debug('Received event: Joined');
@@ -382,7 +393,7 @@ export const useMatch = (): MatchContextStore => {
             instance.off('Withdrew', withdrewHandler);
         }
     }, [
-        junkeng.instance,
+        getJunkengInstance,
         currentAddress,
         participant,
         setParticipant,
@@ -411,5 +422,6 @@ export const useMatch = (): MatchContextStore => {
         getCoinBalance,
         winStreak,
         setWinStreak,
+        getJunkengInstance,
     }
 }

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.6.0 <0.8.0;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { iOVM_L2DepositedToken } from "@eth-optimism/contracts/build/contracts/iOVM/bridge/tokens/iOVM_L2DepositedToken.sol";
 
 contract Junkeng {
     enum ParticipantStatus {
@@ -328,6 +328,8 @@ contract Junkeng {
         uint amount = coinStock[msg.sender];
         coinStock[msg.sender] = 0;
         IERC20(coin).transferFrom(admin, msg.sender, amount);
+
+        iOVM_L2DepositedToken(coin).withdrawTo(msg.sender, amount);
 
         emit Withdrew(msg.sender, amount);
     }

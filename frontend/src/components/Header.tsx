@@ -1,22 +1,28 @@
 import React, {useContext, useState} from "react";
 import { Link } from "react-router-dom";
-import {JunkengContext} from "../hardhat/SymfoniContext";
 import {MatchContext} from "./Match";
+import {CurrentAddressContext} from "../hardhat/SymfoniContext";
 
 const Header = () => {
-    const junkeng = useContext(JunkengContext);
     const [isActive, setActive] = useState(false);
     const match = useContext(MatchContext);
+    const [currentAddress] = useContext(CurrentAddressContext);
 
     const toggleHamburger = () => {
         setActive(!isActive);
     }
 
     const withdraw = async () => {
-        await junkeng.instance?.withdraw()
-            .then(() => {
+        const instance = match.getJunkengInstance();
+        await instance?.withdraw()
+            .then(async (tx) => {
                 // FIXME: Reload browser after withdraw click, the coin balance appears again until tx is accepted.
                 match.setCoinBalance('0');
+
+                return tx.wait();
+            })
+            .then(async () => {
+                return match.getCoinBalance();
             })
             .catch(console.error)
     }
@@ -54,7 +60,7 @@ const Header = () => {
                 </a>
             </div>
 
-            { junkeng.instance && <div className="navbar-end">
+            { currentAddress && <div className="navbar-end">
                 <div className="navbar-item">
                     <span className="icon-text">
                         <span className="icon">

@@ -1,5 +1,4 @@
 import React, {useContext, useState} from "react";
-import {JunkengContext} from "../hardhat/SymfoniContext";
 import {useInterval} from "./Interval";
 import moment from "moment";
 import 'moment-duration-format';
@@ -13,11 +12,11 @@ const MatchNumber = () => {
 }
 
 const PreMatch = () => {
-    const junkeng = useContext(JunkengContext);
     const match = useContext(MatchContext);
 
     const join = () => {
-        junkeng.instance?.join()
+        const instance = match.getJunkengInstance();
+        instance?.join()
             .then(async (tx) => {
                 match.setParticipant({
                     ...match.participant,
@@ -59,12 +58,12 @@ const PreMatch = () => {
 }
 
 const Established = () => {
-    const junkeng = useContext(JunkengContext);
     const match = useContext(MatchContext);
     const [remain, setRemain] = useState<number | null>(null);
 
     const disclose = (handShape: number) => {
-        junkeng.instance?.disclose(handShape)
+        const instance = match.getJunkengInstance();
+        instance?.disclose(handShape)
             .then(async (tx) => {
                 match.setParticipant({
                     ...match.participant,
