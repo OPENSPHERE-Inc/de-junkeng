@@ -4,11 +4,11 @@ import assert from "assert";
 import {JsonRpcProvider} from "@ethersproject/providers";
 import {Contract, ContractFactory, Wallet} from "ethers";
 import {getContractFactory} from "@eth-optimism/contracts";
+import {TransactionResponse} from "@ethersproject/abstract-provider";
 
 import * as JunkCoinERC20 from "../artifacts/contracts/JunkCoinERC20.sol/JunkCoinERC20.json";
 import * as JunkCoinDepositedERC20 from '../artifacts-ovm/contracts/JunkCoinDepositedERC20.sol/JunkCoinDepositedERC20.json';
 import * as Junkeng from '../artifacts-ovm/contracts/Junkeng.sol/Junkeng.json';
-import {TransactionResponse} from "@ethersproject/abstract-provider";
 
 
 const deployL1JuncCoinERC20 = async (l1Wallet: Wallet): Promise<Contract> => {

@@ -45,7 +45,7 @@
     "compile:ovm": "cross-env TARGET=ovm npx hardhat compile",
     "frontend": "cd frontend && npm run start",
     "console:evm": "npx hardhat console --no-compile --network layer1",
-    "console:ovm": "cross-env TARGEt=ovm npx hardhat console --no-compile --network layer2",
+    "console:ovm": "cross-env TARGET=ovm npx hardhat console --no-compile --network layer2",
     "react": "npx hardhat react"
   }
 }
