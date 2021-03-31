@@ -3,7 +3,7 @@ import {CurrentAddressContext, JunkengContext} from "../hardhat/SymfoniContext";
 import moment from "moment";
 import {BigNumber} from "ethers";
 import createPersistedState from "use-persisted-state";
-import {Junkeng} from "../hardhat/typechain";
+import {Junkeng} from "../hardhat/typechain/Junkeng";
 
 
 export const lookupTable = [

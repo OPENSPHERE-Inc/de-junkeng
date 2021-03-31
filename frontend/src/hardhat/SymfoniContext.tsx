@@ -4,11 +4,11 @@
 import { providers, Signer, ethers } from "ethers";
 import React, { useEffect, useState } from "react";
 import Web3Modal, { IProviderOptions } from "web3modal";
-import { JunkCoinERC20 } from "./typechain/JunkCoinERC20";
-import { JunkCoinERC20__factory } from "./typechain/factories/JunkCoinERC20__factory";
 import JunkCoinDepositedERC20Deployment from "./deployments/layer2/JunkCoinDepositedERC20.json";
 import { JunkCoinDepositedERC20 } from "./typechain/JunkCoinDepositedERC20";
 import { JunkCoinDepositedERC20__factory } from "./typechain/factories/JunkCoinDepositedERC20__factory";
+import { JunkCoinERC20 } from "./typechain/JunkCoinERC20";
+import { JunkCoinERC20__factory } from "./typechain/factories/JunkCoinERC20__factory";
 import JunkengDeployment from "./deployments/layer2/Junkeng.json";
 import { Junkeng } from "./typechain/Junkeng";
 import { Junkeng__factory } from "./typechain/factories/Junkeng__factory";
@@ -33,8 +33,8 @@ const defaultSymfoniContext: SymfoniContextInterface = {
     providers: []
 };
 export const SymfoniContext = React.createContext<SymfoniContextInterface>(defaultSymfoniContext);
-export const JunkCoinERC20Context = React.createContext<SymfoniJunkCoinERC20>(emptyContract);
 export const JunkCoinDepositedERC20Context = React.createContext<SymfoniJunkCoinDepositedERC20>(emptyContract);
+export const JunkCoinERC20Context = React.createContext<SymfoniJunkCoinERC20>(emptyContract);
 export const JunkengContext = React.createContext<SymfoniJunkeng>(emptyContract);
 export const ERC20Context = React.createContext<SymfoniERC20>(emptyContract);
 
@@ -52,14 +52,14 @@ export interface SymfoniProps {
     loadingComponent?: React.ReactNode;
 }
 
-export interface SymfoniJunkCoinERC20 {
-    instance?: JunkCoinERC20;
-    factory?: JunkCoinERC20__factory;
-}
-
 export interface SymfoniJunkCoinDepositedERC20 {
     instance?: JunkCoinDepositedERC20;
     factory?: JunkCoinDepositedERC20__factory;
+}
+
+export interface SymfoniJunkCoinERC20 {
+    instance?: JunkCoinERC20;
+    factory?: JunkCoinERC20__factory;
 }
 
 export interface SymfoniJunkeng {
@@ -86,8 +86,8 @@ export const Symfoni: React.FC<SymfoniProps> = ({
     const [currentAddress, setCurrentAddress] = useState<string>(defaultCurrentAddress);
     const [fallbackProvider] = useState<string | undefined>(undefined);
     const [providerPriority, setProviderPriority] = useState<string[]>(["web3modal", "hardhat"]);
-    const [JunkCoinERC20, setJunkCoinERC20] = useState<SymfoniJunkCoinERC20>(emptyContract);
     const [JunkCoinDepositedERC20, setJunkCoinDepositedERC20] = useState<SymfoniJunkCoinDepositedERC20>(emptyContract);
+    const [JunkCoinERC20, setJunkCoinERC20] = useState<SymfoniJunkCoinERC20>(emptyContract);
     const [Junkeng, setJunkeng] = useState<SymfoniJunkeng>(emptyContract);
     const [ERC20, setERC20] = useState<SymfoniERC20>(emptyContract);
     useEffect(() => {
@@ -169,8 +169,8 @@ export const Symfoni: React.FC<SymfoniProps> = ({
                 setMessages(old => [...old, text])
             }
             const finishWithContracts = (text: string) => {
-                setJunkCoinERC20(getJunkCoinERC20(_provider, _signer))
                 setJunkCoinDepositedERC20(getJunkCoinDepositedERC20(_provider, _signer))
+                setJunkCoinERC20(getJunkCoinERC20(_provider, _signer))
                 setJunkeng(getJunkeng(_provider, _signer))
                 setERC20(getERC20(_provider, _signer))
                 finish(text)
@@ -201,15 +201,6 @@ export const Symfoni: React.FC<SymfoniProps> = ({
         return () => { subscribed = false }
     }, [initializeCounter])
 
-    const getJunkCoinERC20 = (_provider: providers.Provider, _signer?: Signer) => {
-        let instance = _signer ? JunkCoinERC20__factory.connect(ethers.constants.AddressZero, _signer) : JunkCoinERC20__factory.connect(ethers.constants.AddressZero, _provider)
-        const contract: SymfoniJunkCoinERC20 = {
-            instance: instance,
-            factory: _signer ? new JunkCoinERC20__factory(_signer) : undefined,
-        }
-        return contract
-    }
-        ;
     const getJunkCoinDepositedERC20 = (_provider: providers.Provider, _signer?: Signer) => {
 
         const contractAddress = JunkCoinDepositedERC20Deployment.receipt.contractAddress
@@ -217,6 +208,15 @@ export const Symfoni: React.FC<SymfoniProps> = ({
         const contract: SymfoniJunkCoinDepositedERC20 = {
             instance: instance,
             factory: _signer ? new JunkCoinDepositedERC20__factory(_signer) : undefined,
+        }
+        return contract
+    }
+        ;
+    const getJunkCoinERC20 = (_provider: providers.Provider, _signer?: Signer) => {
+        let instance = _signer ? JunkCoinERC20__factory.connect(ethers.constants.AddressZero, _signer) : JunkCoinERC20__factory.connect(ethers.constants.AddressZero, _provider)
+        const contract: SymfoniJunkCoinERC20 = {
+            instance: instance,
+            factory: _signer ? new JunkCoinERC20__factory(_signer) : undefined,
         }
         return contract
     }
@@ -255,8 +255,8 @@ export const Symfoni: React.FC<SymfoniProps> = ({
             <ProviderContext.Provider value={[provider, setProvider]}>
                 <SignerContext.Provider value={[signer, setSigner]}>
                     <CurrentAddressContext.Provider value={[currentAddress, setCurrentAddress]}>
-                        <JunkCoinERC20Context.Provider value={JunkCoinERC20}>
-                            <JunkCoinDepositedERC20Context.Provider value={JunkCoinDepositedERC20}>
+                        <JunkCoinDepositedERC20Context.Provider value={JunkCoinDepositedERC20}>
+                            <JunkCoinERC20Context.Provider value={JunkCoinERC20}>
                                 <JunkengContext.Provider value={Junkeng}>
                                     <ERC20Context.Provider value={ERC20}>
                                         {showLoading && loading ?
@@ -271,8 +271,8 @@ export const Symfoni: React.FC<SymfoniProps> = ({
                                         }
                                     </ERC20Context.Provider >
                                 </JunkengContext.Provider >
-                            </JunkCoinDepositedERC20Context.Provider >
-                        </JunkCoinERC20Context.Provider >
+                            </JunkCoinERC20Context.Provider >
+                        </JunkCoinDepositedERC20Context.Provider >
                     </CurrentAddressContext.Provider>
                 </SignerContext.Provider>
             </ProviderContext.Provider>

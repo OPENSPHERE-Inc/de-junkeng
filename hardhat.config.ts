@@ -10,19 +10,25 @@ import "@symfoni/hardhat-react";
 import "hardhat-typechain";
 import "@typechain/ethers-v5";
 import "@eth-optimism/plugins/hardhat/compiler";
+import assert from "assert";
 
-// This is a sample Hardhat task. To learn how to create your own go to
-// https://hardhat.org/guides/create-task.html
+assert(process.env.WALLET_PRIVATE_KEY_DEPLOYER);
+assert(process.env.WALLET_PRIVATE_KEY_SEQUENCER);
+assert(process.env.WALLET_PRIVATE_KEY_TESTER1);
+assert(process.env.WALLET_PRIVATE_KEY_TESTER2);
+assert(process.env.L1_WEB3_URL);
+assert(process.env.L2_WEB3_URL);
+assert(process.env.L1_MESSENGER_ADDRESS);
+assert(process.env.L2_MESSENGER_ADDRESS);
+
+
 task("accounts", "Prints the list of accounts", async (args, hre) => {
     const accounts = await hre.ethers.getSigners();
     for (const account of accounts) {
         console.log(account.address);
     }
-});
+})
 
-
-// You need to export an object to set up your config
-// Go to https://hardhat.org/config/ to learn more
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
@@ -34,38 +40,43 @@ const config: HardhatUserConfig = {
     defaultNetwork: "layer2",
     networks: {
         hardhat: {
-            inject: false, // optional. If true, it will EXPOSE your mnemonic in your frontend code. Then it would be available as an "in-page browser wallet" / signer which can sign without confirmation.
+            inject: false,
             accounts: {
-                mnemonic: "test test test test test test test test test test test junk", // test test test test test test test test test test test junk
+                mnemonic: "test test test test test test test test test test test junk",
             },
         },
         layer2: {
-            url: "http://localhost:8545",
+            url: process.env.L2_WEB3_URL,
             accounts: [
-                "0x754fde3f5e60ef2c7649061e06957c29017fe21032a8017132c0078e37f6193a",
-                "0xd2ab07f7c10ac88d5f86f1b4c1035d5195e81f27dbe62ad65e59cbf88205629b",
-                "0x23d9aeeaa08ab710a57972eb56fc711d9ab13afdecc92c89586e0150bfa380a6"
-            ]
+                process.env.WALLET_PRIVATE_KEY_DEPLOYER,
+                process.env.WALLET_PRIVATE_KEY_SEQUENCER,
+                process.env.WALLET_PRIVATE_KEY_TESTER1,
+                process.env.WALLET_PRIVATE_KEY_TESTER2,
+            ],
         },
         layer1: {
-            url: "http://localhost:9545",
+            url: process.env.L1_WEB3_URL,
             accounts: [
-                "0x754fde3f5e60ef2c7649061e06957c29017fe21032a8017132c0078e37f6193a",
-                "0xd2ab07f7c10ac88d5f86f1b4c1035d5195e81f27dbe62ad65e59cbf88205629b",
-                "0x23d9aeeaa08ab710a57972eb56fc711d9ab13afdecc92c89586e0150bfa380a6"
-            ]
-        }
+                process.env.WALLET_PRIVATE_KEY_DEPLOYER,
+                process.env.WALLET_PRIVATE_KEY_SEQUENCER,
+                process.env.WALLET_PRIVATE_KEY_TESTER1,
+                process.env.WALLET_PRIVATE_KEY_TESTER2,
+            ],
+        },
     },
     namedAccounts: {
         deployer: {
             default: 0,
         },
-        tester1: {
+        sequencer: {
             default: 1,
         },
-        tester2: {
+        tester1: {
             default: 2,
-        }
+        },
+        tester2: {
+            default: 3,
+        },
     },
     solidity: {
         compilers: [
@@ -80,5 +91,6 @@ const config: HardhatUserConfig = {
             },
         ],
     },
-};
+}
+
 export default config;

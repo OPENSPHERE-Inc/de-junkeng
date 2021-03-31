@@ -1,18 +1,21 @@
 import {expect} from "chai";
 import hre from "hardhat";
 import {TransactionResponse} from "@ethersproject/abstract-provider";
-import {BigNumber} from "ethers";
+import {BigNumber, Contract} from "ethers";
 import moment from "moment";
+import {setupLocal} from "./setup";
 
 describe('Junkeng', () => {
+    let contracts: {[name: string]: Contract };
+
     beforeEach(async () => {
-        await hre.deployments.fixture();
+        contracts = await setupLocal();
     })
 
     const getContracts = async () => {
-        const { tester1, tester2 } = await hre.getNamedAccounts();
-        const Junkeng1 = await hre.ethers.getContract('Junkeng', tester1);
-        const Junkeng2 = await hre.ethers.getContract('Junkeng', tester2);
+        const { tester1, tester2 } = await hre.ethers.getNamedSigners();
+        const Junkeng1 = contracts.L2Junkeng.connect(tester1);
+        const Junkeng2 = contracts.L2Junkeng.connect(tester2);
 
         return { Junkeng1, Junkeng2, tester1, tester2 };
     }
@@ -29,13 +32,13 @@ describe('Junkeng', () => {
             const status2 = await Junkeng2.getStatus();
             const status2op = await Junkeng2.getOpponentStatus();
 
-            expect(status1.addr).equal(tester1);
+            expect(status1.addr).equal(tester1.address);
             expect(status1.index).equal(0);
             expect(status1.status).equal(1);
             expect(status1.handShape).equal(0);
             expect(status1.index).equal(status2op.index);
 
-            expect(status2.addr).equal(tester2);
+            expect(status2.addr).equal(tester2.address);
             expect(status2.index).equal(1);
             expect(status2.status).equal(1);
             expect(status2.handShape).equal(0);
@@ -55,13 +58,13 @@ describe('Junkeng', () => {
             const status2 = await Junkeng2.getStatus();
             const status2op = await Junkeng2.getOpponentStatus();
 
-            expect(status1.addr).equal(tester1);
+            expect(status1.addr).equal(tester1.address);
             expect(status1.index).equal(BigNumber.from(0));
             expect(status1.status).equal(3);
             expect(status1.handShape).equal(1);
             expect(status1.index).equal(status2op.index);
 
-            expect(status2.addr).equal(tester2);
+            expect(status2.addr).equal(tester2.address);
             expect(status2.index).equal(BigNumber.from(1));
             expect(status2.status).equal(3);
             expect(status2.handShape).equal(2);
@@ -70,7 +73,7 @@ describe('Junkeng', () => {
 
         it('Coin was earned', async () => {
             const {Junkeng1, Junkeng2, tester1} = await getContracts();
-            const Coin1 = await hre.ethers.getContract('JunkCoinERC20', tester1);
+            const Coin1 = contracts.L2JunkCoinDepositedERC20.connect(tester1);
 
             await Junkeng1.join().then((tx: TransactionResponse) => tx.wait());
             await Junkeng2.join().then((tx: TransactionResponse) => tx.wait());
@@ -78,7 +81,14 @@ describe('Junkeng', () => {
             await Junkeng2.disclose(2).then((tx: TransactionResponse) => tx.wait());
             await Junkeng1.withdraw().then((tx: TransactionResponse) => tx.wait());
 
-            expect(await Coin1.balanceOf(tester1)).equal(BigNumber.from(1));
+            expect(await Coin1.balanceOf(tester1.address)).equal(BigNumber.from(0));  // Burned immediately
+
+            await contracts.L1CrossDomainMessenger.relayNextMessage({ gasLimit: 9500000 })
+                .then((tx: TransactionResponse) => tx.wait());
+
+            const L1JunkCoinERC20 = contracts.L1JunkCoinERC20.connect(tester1);
+
+            expect(await L1JunkCoinERC20.balanceOf(tester1.address)).equal(BigNumber.from(1));
         })
 
         it('Get coin balance Succeed', async () => {

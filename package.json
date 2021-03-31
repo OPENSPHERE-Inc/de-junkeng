@@ -39,14 +39,13 @@
     "yargs-parser": ">=20.2.7"
   },
   "scripts": {
-    "test": "npx hardhat test --network hardhat",
-    "serve": "npx hardhat node --watch --network hardhat",
-    "deploy": "cross-env TARGET=ovm npx hardhat run --no-compile scripts/deploy_JunkCoinERC20_L1.ts",
+    "test": "npm run compile:evm && npx hardhat test --no-compile --network hardhat",
+    "deploy": "npm run compile:evm && cross-env TARGET=ovm npx hardhat deploy --reset --network layer2",
     "compile:evm": "npx hardhat compile --no-typechain",
     "compile:ovm": "cross-env TARGET=ovm npx hardhat compile",
-    "react": "npx hardhat react",
     "frontend": "cd frontend && npm run start",
     "console:evm": "npx hardhat console --no-compile --network layer1",
-    "console:ovm": "cross-env TARGEt=ovm npx hardhat console --no-compile --network layer2"
+    "console:ovm": "cross-env TARGEt=ovm npx hardhat console --no-compile --network layer2",
+    "react": "npx hardhat react"
   }
 }

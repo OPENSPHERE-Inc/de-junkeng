@@ -11,17 +11,17 @@ import * as Junkeng from '../artifacts-ovm/contracts/Junkeng.sol/Junkeng.json';
 
 
 const main = async () => {
-    assert(process.env.WALLET_PRIVATE_KEY);
+    assert(process.env.WALLET_PRIVATE_KEY_DEPLOYER);
     assert(process.env.L1_WEB3_URL);
     assert(process.env.L2_WEB3_URL);
     assert(process.env.L1_MESSENGER_ADDRESS);
     assert(process.env.L2_MESSENGER_ADDRESS);
 
     const l1Provider = new JsonRpcProvider(process.env.L1_WEB3_URL);
-    const l1Wallet = new Wallet(process.env.WALLET_PRIVATE_KEY, l1Provider);
+    const l1Wallet = new Wallet(process.env.WALLET_PRIVATE_KEY_DEPLOYER, l1Provider);
 
     const l2Provider = new JsonRpcProvider(process.env.L2_WEB3_URL);
-    const l2Wallet = new Wallet(process.env.WALLET_PRIVATE_KEY, l2Provider);
+    const l2Wallet = new Wallet(process.env.WALLET_PRIVATE_KEY_DEPLOYER, l2Provider);
 
     // Deploy L1 contracts
     const L1JunkCoinERC20Factory = new ContractFactory(JunkCoinERC20.abi, JunkCoinERC20.bytecode, l1Wallet);
